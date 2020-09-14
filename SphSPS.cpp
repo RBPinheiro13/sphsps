@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
     //Inputs
     string img_name = string(cimg_option("-i","","Input image file"));
     int SuperpixelNum = cimg_option("-k",1000,"Number of desired superpixels");
+    int sampling_type = cimg_option("-st", 0, "Sampling Type used");
     float compactness = cimg_option("-m", 0.12, "Compactness value");
     string contour_input = string(cimg_option("-c","","Input contour image file"));
 
@@ -74,7 +75,7 @@ int main(int argc, char* argv[])
     }
 
     //SphSPS
-    SphSPS_setup(R,G,B,nRows,nCols,SuperpixelNum,compactness,label,path_color,path_contour,contour);
+    SphSPS_setup(R,G,B,nRows,nCols,SuperpixelNum,compactness,label,path_color,path_contour,contour,sampling_type);
 
     // SAVE OUTPUTS
 

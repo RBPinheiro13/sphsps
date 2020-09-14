@@ -20,7 +20,7 @@ void SphereHammersley(float *xyz_sphere, int n)
 {
   float p, t, st, phi, phirad;
   int k, kk, pos;
-  
+
   for (k=0, pos=0 ; k<n ; k++)
   {
     t = 0;
@@ -39,10 +39,38 @@ void SphereHammersley(float *xyz_sphere, int n)
   }
 }
 
+/*
+ * Fibbonnacci points
+ * https://people.sc.fsu.edu/~jburkardt/c_src/sphere_fibonacci_grid/sphere_fibonacci_grid.html
+ */
+
+void SphereFibbonnacci(float *xyz_sphere, int n)
+{
+  double cphi, i_r8, ng_r8, r8_phi, sphi, theta;
+  const double r8_pi = 3.141592653589793;
+  int j, pos;
+
+  r8_phi = ( 1.0 + sqrt ( 5.0 ) ) / 2.0;
+  ng_r8 = ( double ) ( n );
+
+  for ( j = 0, pos=0; j < n; j++ )
+  {
+    i_r8 = (double)(-n+1+2*j);
+    theta = 2.0 * r8_pi * i_r8 / r8_phi;
+    sphi = i_r8 / ng_r8;
+    cphi = sqrt ( ( ng_r8 + i_r8 ) * ( ng_r8 - i_r8 ) ) / ng_r8;
+
+    xyz_sphere[pos] = cphi * sin ( theta );
+    xyz_sphere[pos+n] = cphi * cos ( theta );
+    xyz_sphere[(pos++)+2*n] = sphi;
+  }
+}
+
+
 void xyz_3Dsphere_to_xy_2Dplanar(float *xyz_sphere, int n, int h, int w, float* x, float *y) {
-    
+
     float x3, y3, z3, phic, thetac;
-    
+
     for (int i=0; i<n; i++) {
         x3     = xyz_sphere[i];
         y3     = xyz_sphere[i+n];
@@ -51,7 +79,7 @@ void xyz_3Dsphere_to_xy_2Dplanar(float *xyz_sphere, int n, int h, int w, float* 
         thetac = atan2(y3,x3);
    	    y[i]   = ((phic*h/(pi)))-1;
         x[i]   = ((thetac)*w/(2*pi))-1;
-    
+
         if (x[i]<0)
             x[i] = w+x[i];
 
@@ -59,13 +87,21 @@ void xyz_3Dsphere_to_xy_2Dplanar(float *xyz_sphere, int n, int h, int w, float* 
 }
 
 void seeds_sp_sampling_hammersley(int n, int h, int w, float* x, float *y) {
-    
+
     float *xyz_sphere = (float *)malloc(n*3*sizeof(float));
-    
+
     SphereHammersley(xyz_sphere, n);
     xyz_3Dsphere_to_xy_2Dplanar(xyz_sphere, n, h, w, x, y);
-    
+
     free(xyz_sphere);
 }
 
+void seeds_sp_sampling_fibbonnacci(int n, int h, int w, float* x, float *y) {
 
+    float *xyz_sphere = (float *)malloc(n*3*sizeof(float));
+
+    SphereFibbonnacci(xyz_sphere, n);
+    xyz_3Dsphere_to_xy_2Dplanar(xyz_sphere, n, h, w, x, y);
+
+    free(xyz_sphere);
+}
