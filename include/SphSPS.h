@@ -7,7 +7,7 @@
 
 
 void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRows, int nCols, int seedNum, float compactness, unsigned short* label,
-        int path_color, int path_contour, float*contour)
+        int path_color, int path_contour, float*contour, int sampling_type)
 {
     //Setting Parameters
     float colorCoefficient=20;
@@ -15,16 +15,16 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
     int thresholdCoef=4;
     int iteration = 5;
     int N_path = 15;
-    
+
     unsigned char *L, *a, *b;
     L=new unsigned char[nRows*nCols];
     a=new unsigned char[nRows*nCols];
     b=new unsigned char[nRows*nCols];
-    
+
     //Conversion to LAB
     myrgb2lab1(R,G,B,L,a,b,nRows,nCols);
-    
-    /////////////// Produce Seeds ///////////// 
+
+    /////////////// Produce Seeds /////////////
     int newSeedNum = seedNum;
     float *seedsx = (float *) calloc(seedNum,sizeof(float));
     float *seedsy = (float *) calloc(seedNum,sizeof(float));
@@ -34,15 +34,16 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
     StepY=nRows/RowNum;
     StepX=nCols/ColNum;
     //Hammersely spherical sampling
-    seeds_sp_sampling_hammersley(seedNum, nRows, nCols, seedsx, seedsy);
+    if (sampling_type==1) seeds_sp_sampling_fibbonnacci(seedNum, nRows, nCols, seedsx, seedsy);
+    else  seeds_sp_sampling_hammersley(seedNum, nRows, nCols, seedsx, seedsy);
+    //
 
-        
     compactness = 1.0/((StepY/compactness)*(StepX/compactness));
     float lambda = 1;
     if (path_color == 1)
         lambda = 0.5;
-    
-    
+
+
     //Initialization 6-Lab features
     float *L1,*L2,*a1,*a2,*b1,*b2,*x1,*x2,*y1,*y2;
     float *W;
@@ -57,20 +58,20 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
     y1=new float[nRows*nCols];
     y2=new float[nRows*nCols];
     W =new float[nRows*nCols];
-   
+
     Initialize(L,a,b,L1,L2,a1,a2,b1,b2,x1,x2,y1,y2,W,nRows,nCols,StepX,StepY,colorCoefficient,distCoefficient);
     delete [] L;
     delete [] a;
     delete [] b;
-    
-    
-    //Filtered and average features - set pw = 0 for no action 
+
+
+    //Filtered and average features - set pw = 0 for no action
     float* Lab_2=new float[nCols*nRows]();
     float* xy_2=new float[nCols*nRows]();
     int pw = 2;
     bilateral_lab_features(L1, L2, a1, a2, b1, b2, x1, x2, y1, y2, Lab_2, xy_2, nRows, nCols, pw, R, G, B);
-    
-    
+
+
     //Superpixel seeds initialization
     float* centerL1=new float[newSeedNum]();
     float* centerL2=new float[newSeedNum]();
@@ -92,13 +93,13 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
         int maxX=(x+step_init>=nCols-1)?nCols-1:x+step_init;
         int maxY=(y+step_init>=nRows-1)?nRows-1:y+step_init;
         int Count=0;
-        
+
         //Centered on the seeds
         for(int j=minX;j<=maxX;j++)
             for(int k=minY;k<=maxY;k++)
             {
                 Count++;
-                
+
                 int pos = k+j*nRows;
                 //Remplacer par features filtrés
                 centerL1[i]+=L1[pos];
@@ -111,7 +112,7 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
                 centerx2[i]+=x2[pos];
                 centery1[i]+=y1[pos];
                 centery2[i]+=y2[pos];
-                
+
             }
         centerL1[i]/=Count;
         centerL2[i]/=Count;
@@ -124,22 +125,22 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
         centery1[i]/=Count;
         centery2[i]/=Count;
     }
-    
-    
-    
+
+
+
     //Superpixel Clustering
     SphSPS_clustering(L1, L2, a1, a2, b1, b2, x1, x2, y1, y2, Lab_2, xy_2,
-                     centerL1, centerL2, centera1, centera2, centerb1, centerb2, centerx1, centerx2, centery1, centery2, 
+                     centerL1, centerL2, centera1, centera2, centerb1, centerb2, centerx1, centerx2, centery1, centery2,
                      W, label, seedsx, seedsy, newSeedNum, nRows, nCols, StepX, StepY, iteration,
                     path_color, path_contour, contour, compactness, lambda, R, G, B, N_path);
- 
-    
+
+
     //Enforce Connectivity
     int threshold= (nCols*nRows)/(newSeedNum*thresholdCoef);
     preEnforceConnectivity(label,nRows,nCols);
     EnforceConnectivity(L1,L2,a1,a2,b1,b2,x1,x2,y1,y2,W,label,threshold,nRows,nCols);
- 
-    
+
+
     //Clear Memory
     delete []L1;
     delete []L2;
@@ -154,7 +155,7 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
     delete []W;
     free(seedsx);
     free(seedsy);
-        
+
     //Clear Memory
     delete []centerL1;
     delete []centerL2;
@@ -166,10 +167,9 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
     delete []centerx2;
     delete []centery1;
     delete []centery2;
-    
+
     delete []Lab_2;
     delete []xy_2;
-    
-    
-}
 
+
+}
