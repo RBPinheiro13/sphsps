@@ -17,6 +17,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
     int sampling_type = 0;
     int path_color = 1;
     int path_contour = 0;
+    int image_type = 0; //If 0, image is equiretangular, if 1, image is circular fisheye (square image)
 
     if(nrhs>=2)
     {
@@ -54,7 +55,11 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
             contour[i] = 1;
     }
 
-
+    if (nRows==nCols)
+    {
+      // Means the image is a fisheye type
+      image_type = 1;
+    }
 
     int pixel=nRows*nCols;
     R=new unsigned char[pixel];
@@ -72,7 +77,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
 
 
     //SphSPS
-    SphSPS_setup(R,G,B,nRows,nCols,SuperpixelNum,compactness,label,path_color,path_contour,contour,sampling_type);
+    SphSPS_setup(R,G,B,nRows,nCols,SuperpixelNum,compactness,label,path_color,path_contour,contour,sampling_type,image_type);
 
 
     //Output label map

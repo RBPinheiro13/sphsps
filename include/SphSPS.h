@@ -1,5 +1,5 @@
 #include "myrgb2lab.h"
-#include "hammersley_sampling.h"
+#include "initial_sampling.h"
 #include "initialize.h"
 #include "bilateral_lab_filtering.h"
 #include "SphSPS_clustering.h"
@@ -7,7 +7,7 @@
 
 
 void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRows, int nCols, int seedNum, float compactness, unsigned short* label,
-        int path_color, int path_contour, float*contour, int sampling_type)
+        int path_color, int path_contour, float*contour, int sampling_type, int image_type)
 {
     //Setting Parameters
     float colorCoefficient=20;
@@ -34,7 +34,7 @@ void SphSPS_setup(unsigned char* R, unsigned char* G, unsigned char* B, int nRow
     StepY=nRows/RowNum;
     StepX=nCols/ColNum;
     //Hammersely spherical sampling
-    if (sampling_type==1) seeds_sp_sampling_fibbonnacci(seedNum, nRows, nCols, seedsx, seedsy);
+    if (sampling_type==1) seeds_sp_sampling_fibbonnacci(seedNum, nRows, nCols, image_type, seedsx, seedsy);
     else  seeds_sp_sampling_hammersley(seedNum, nRows, nCols, seedsx, seedsy);
     //
 

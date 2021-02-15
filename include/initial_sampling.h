@@ -44,18 +44,24 @@ void SphereHammersley(float *xyz_sphere, int n)
  * https://people.sc.fsu.edu/~jburkardt/c_src/sphere_fibonacci_grid/sphere_fibonacci_grid.html
  */
 
-void SphereFibbonnacci(float *xyz_sphere, int n)
+void SphereFibbonnacci(float *xyz_sphere, int n, int it)
 {
   double cphi, i_r8, ng_r8, r8_phi, sphi, theta;
   const double r8_pi = 3.141592653589793;
+  int sampling_scale = 2;
   int j, pos;
+
+  if(it==1)//means that the image is a fisheye, we need to change the sampling to get half a sphere
+  {
+    sampling_scale=1;
+  }
 
   r8_phi = ( 1.0 + sqrt ( 5.0 ) ) / 2.0;
   ng_r8 = ( double ) ( n );
 
   for ( j = 0, pos=0; j < n; j++ )
   {
-    i_r8 = (double)(-n+1+2*j);
+    i_r8 = (double)(-n+1+sampling_scale*j);
     theta = 2.0 * r8_pi * i_r8 / r8_phi;
     sphi = i_r8 / ng_r8;
     cphi = sqrt ( ( ng_r8 + i_r8 ) * ( ng_r8 - i_r8 ) ) / ng_r8;
@@ -96,11 +102,11 @@ void seeds_sp_sampling_hammersley(int n, int h, int w, float* x, float *y) {
     free(xyz_sphere);
 }
 
-void seeds_sp_sampling_fibbonnacci(int n, int h, int w, float* x, float *y) {
+void seeds_sp_sampling_fibbonnacci(int n, int h, int w, int it, float* x, float *y) {
 
     float *xyz_sphere = (float *)malloc(n*3*sizeof(float));
 
-    SphereFibbonnacci(xyz_sphere, n);
+    SphereFibbonnacci(xyz_sphere, n, it);
     xyz_3Dsphere_to_xy_2Dplanar(xyz_sphere, n, h, w, x, y);
 
     free(xyz_sphere);
